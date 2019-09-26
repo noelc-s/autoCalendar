@@ -1,6 +1,6 @@
 from html.parser import HTMLParser
 import urllib.request
-from GoogleCalendarAddEvent import addEvent
+from GoogleCalendarAddEvent import addEvent, getEvents
 from datetime import datetime, timedelta
 
 class LinksParser(HTMLParser):
@@ -67,6 +67,9 @@ for i in range(len(parser.data)):
         combined_data.append(parser.data[i])
 #print ('--')
 all_data = all_data[1:]
+
+existing_events = getEvents()
+
 print('Adding the following events:')
 for x in all_data:
     print(x)
@@ -83,8 +86,14 @@ for x in all_data:
     event['end']['dateTime']=end
     event['end']['timeZone']='America/Los_Angeles'
     event['summary'] = x[3]
-    event['description']="".join(x[4:-1])
+    event['description']="".join(x[4:-1]).replace('\\n','\n')
     event['location']=x[-1].replace('\\n','')
-    addEvent(event)
+    print(event)
+    add = True
+    for e in existing_events:
+        if add and event['description'] == e['description']:
+            add = False
+    if add:
+        addEvent(event)
 
 
